@@ -8,7 +8,6 @@
             "default": "mdi:radiator-disabled",
             "state": {
               "heating": "mdi:radiator",
-              "idle": "mdi:radiator-disabled",
               "off": "mdi:radiator-off"
             }
           }

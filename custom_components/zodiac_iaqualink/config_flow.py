@@ -15,6 +15,14 @@ from .const import CONF_EMAIL, CONF_PASSWORD, CONF_SERIAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+# Placeholders rendered into the user-step description in strings.json so
+# the URL is not embedded in the translation string (hassfest rejects raw
+# URLs in translations).
+_USER_PLACEHOLDERS = {
+    "iaqualink_url": "https://iaqualink.net",
+    "serial_example": "LB18475932",
+}
+
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_EMAIL): str,
@@ -83,6 +91,7 @@ class ZodiacConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=STEP_USER_DATA_SCHEMA,
+            description_placeholders=_USER_PLACEHOLDERS,
             errors=errors,
         )
 

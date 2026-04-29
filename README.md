@@ -101,6 +101,18 @@ The integration follows Home Assistant's standard error-reporting paths:
   contains the parsed coordinator data with email, password, and serial
   number redacted — safe to attach to a GitHub issue.
 
+## Repository setup (one-time, for HACS validation)
+
+HACS's CI requires the GitHub repo itself to have a few topics set so the
+integration can be discovered. From the repo's main page on GitHub click
+the gear icon next to **About** and add at least these topics:
+
+```
+home-assistant  hacs  hacs-integration  iaqualink  zodiac  pool  heat-pump
+```
+
+Save. The next run of the *Validate* workflow will pass the topics check.
+
 ## Releases & updates in HACS
 
 HACS watches the GitHub releases on this repo. Once installed, when a new
