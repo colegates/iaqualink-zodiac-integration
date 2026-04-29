@@ -1,0 +1,51 @@
+{
+  "entity": {
+    "climate": {
+      "heat_pump": {
+        "default": "mdi:pool-thermometer",
+        "state_attributes": {
+          "hvac_action": {
+            "default": "mdi:radiator-disabled",
+            "state": {
+              "heating": "mdi:radiator",
+              "idle": "mdi:radiator-disabled",
+              "off": "mdi:radiator-off"
+            }
+          }
+        }
+      }
+    },
+    "sensor": {
+      "water_temperature": { "default": "mdi:coolant-temperature" },
+      "air_temperature": { "default": "mdi:thermometer" },
+      "setpoint": { "default": "mdi:thermostat" },
+      "heater_status": {
+        "default": "mdi:radiator-disabled",
+        "state": {
+          "off": "mdi:radiator-off",
+          "temp_buffer": "mdi:radiator-disabled",
+          "heating": "mdi:radiator",
+          "unknown": "mdi:help-circle-outline"
+        }
+      },
+      "heater_mode": {
+        "default": "mdi:fan",
+        "state": {
+          "boost": "mdi:fan-speed-3",
+          "silent": "mdi:fan-speed-1",
+          "unknown": "mdi:help-circle-outline"
+        }
+      },
+      "reason": { "default": "mdi:information-outline" }
+    },
+    "select": {
+      "heater_mode": {
+        "default": "mdi:fan",
+        "state": {
+          "boost": "mdi:fan-speed-3",
+          "silent": "mdi:fan-speed-1"
+        }
+      }
+    }
+  }
+}

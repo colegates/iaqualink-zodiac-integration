@@ -55,6 +55,27 @@ The integration polls every 120 seconds. The cloud rate-limits aggressively
 (returning HTTP 429 if you go too fast); please don't shorten the interval
 without good reason.
 
+## Branding (Zodiac logo on the integration tile)
+
+Each entity gets a Material Design icon via `icons.json`. The integration's
+**tile/logo** in Home Assistant and HACS, however, is sourced from the
+[`home-assistant/brands`](https://github.com/home-assistant/brands)
+repository — Home Assistant pulls
+`https://brands.home-assistant.io/zodiac_iaqualink/icon.png` and `logo.png`
+at runtime. Until the brand is accepted there, HA shows a generic puzzle
+icon next to the integration's name.
+
+To get the Zodiac logo on the tile, open a PR against
+`home-assistant/brands` adding:
+
+```
+custom_integrations/zodiac_iaqualink/icon.png   (256×256 PNG, transparent)
+custom_integrations/zodiac_iaqualink/logo.png   (≤2:1 aspect, transparent)
+```
+
+This is the standard HA process for any third-party integration; it can't
+be done from inside this repo.
+
 ## Notes / limitations
 
 - This integration controls **power on/off**, **setpoint**, and **mode**
