@@ -22,8 +22,11 @@ heat pump's data. This integration adds:
 3. Install **Zodiac iAquaLink Heat Pump** and restart Home Assistant.
 4. *Settings* → *Devices & Services* → *Add Integration* → search for
    "Zodiac iAquaLink Heat Pump".
-5. Enter your iAquaLink email, password, and the heat pump serial number
-   printed on the unit (e.g. `LB21360607`).
+5. Enter your iAquaLink email, password, and the heat pump serial number.
+
+   **To find your heat pump serial:** log in at <https://iaqualink.net>, open
+   the location/site for your pool, then click **Device Status**. The serial
+   is also printed on the sticker on the unit and looks like `LB18475932`.
 
 ## How it talks to the cloud
 
@@ -55,26 +58,19 @@ The integration polls every 120 seconds. The cloud rate-limits aggressively
 (returning HTTP 429 if you go too fast); please don't shorten the interval
 without good reason.
 
-## Branding (Zodiac logo on the integration tile)
+## Branding (iAquaLink logo on the integration tile)
 
 Each entity gets a Material Design icon via `icons.json`. The integration's
 **tile/logo** in Home Assistant and HACS, however, is sourced from the
 [`home-assistant/brands`](https://github.com/home-assistant/brands)
-repository — Home Assistant pulls
-`https://brands.home-assistant.io/zodiac_iaqualink/icon.png` and `logo.png`
-at runtime. Until the brand is accepted there, HA shows a generic puzzle
-icon next to the integration's name.
+repository at runtime — there is no manifest field that overrides this.
 
-To get the Zodiac logo on the tile, open a PR against
-`home-assistant/brands` adding:
-
-```
-custom_integrations/zodiac_iaqualink/icon.png   (256×256 PNG, transparent)
-custom_integrations/zodiac_iaqualink/logo.png   (≤2:1 aspect, transparent)
-```
-
-This is the standard HA process for any third-party integration; it can't
-be done from inside this repo.
+The existing iAquaLink logo from that repo is bundled in
+[`brands/zodiac_iaqualink/`](brands/zodiac_iaqualink) ready to be submitted
+as a brands PR (instructions in [`brands/README.md`](brands/README.md)).
+Once merged into `home-assistant/brands`, the iAquaLink logo will appear on
+the integration tile. Until then HA shows a generic puzzle icon next to
+"Zodiac iAquaLink Heat Pump".
 
 ## Notes / limitations
 
