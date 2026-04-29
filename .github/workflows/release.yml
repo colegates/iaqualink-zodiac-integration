@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify manifest version matches tag
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          manifest_version=$(jq -r .version custom_components/zodiac_iaqualink/manifest.json)
+          if [ "$tag" != "$manifest_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME (-> $tag) does not match manifest version $manifest_version"
+            exit 1
+          fi
+
+      - name: Bundle integration as ZIP
+        run: |
+          cd custom_components/zodiac_iaqualink
+          zip -r9 "../../zodiac_iaqualink.zip" .
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: zodiac_iaqualink.zip
+          generate_release_notes: true

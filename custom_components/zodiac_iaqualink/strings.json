@@ -9,6 +9,13 @@
           "password": "Password",
           "serial": "Heat pump serial number"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Zodiac iAquaLink",
+        "description": "The credentials for {email} are no longer accepted by the iAquaLink cloud. Enter the current password to reconnect.",
+        "data": {
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -16,7 +23,8 @@
       "cannot_connect": "Unable to reach the iAquaLink cloud."
     },
     "abort": {
-      "already_configured": "This heat pump is already configured."
+      "already_configured": "This heat pump is already configured.",
+      "reauth_successful": "Re-authentication successful."
     }
   },
   "entity": {

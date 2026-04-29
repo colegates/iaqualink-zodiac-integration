@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import ZodiacApiClient, ZodiacApiError, ZodiacAuthError
@@ -88,26 +89,33 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             shadow = await self.client.async_get_shadow(self.serial)
         except ZodiacAuthError as err:
-            raise UpdateFailed(f"Authentication failed: {err}") from err
+            # Triggers HA's standard re-auth flow (notification + reconfigure prompt).
+            raise ConfigEntryAuthFailed(str(err)) from err
         except ZodiacApiError as err:
             raise UpdateFailed(str(err)) from err
         return parse_shadow(shadow)
 
-    async def async_set_setpoint(self, setpoint: int) -> None:
-        await self.client.async_update_shadow(
-            self.serial, {"equipment": {EQUIPMENT_KEY: {"tsp": int(setpoint)}}}
-        )
+    async def _async_write(self, desired: dict[str, Any], description: str) -> None:
+        try:
+            await self.client.async_update_shadow(
+                self.serial, {"equipment": {EQUIPMENT_KEY: desired}}
+            )
+        except ZodiacAuthError as err:
+            _LOGGER.error("Auth failed while %s: %s", description, err)
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except ZodiacApiError as err:
+            _LOGGER.error("API error while %s: %s", description, err)
+            raise HomeAssistantError(f"Could not {description}: {err}") from err
         await self.async_request_refresh()
 
+    async def async_set_setpoint(self, setpoint: int) -> None:
+        await self._async_write({"tsp": int(setpoint)}, f"set setpoint to {setpoint}°C")
+
     async def async_set_mode(self, mode_int: int) -> None:
-        await self.client.async_update_shadow(
-            self.serial, {"equipment": {EQUIPMENT_KEY: {"st": int(mode_int)}}}
-        )
-        await self.async_request_refresh()
+        await self._async_write({"st": int(mode_int)}, f"set mode to {mode_int}")
 
     async def async_set_power(self, on: bool) -> None:
         """Turn the heat pump on/off via equipment.hp_0.state (1/0)."""
-        await self.client.async_update_shadow(
-            self.serial, {"equipment": {EQUIPMENT_KEY: {"state": 1 if on else 0}}}
+        await self._async_write(
+            {"state": 1 if on else 0}, f"turn heat pump {'on' if on else 'off'}"
         )
-        await self.async_request_refresh()
