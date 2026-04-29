@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Zodiac iAquaLink Heat Pump",
-        "description": "Sign in with your iAquaLink account and enter the heat pump serial number (printed on the unit, e.g. LB18475932).",
+        "description": "Sign in with your iAquaLink account and enter the heat pump serial number.\n\nWhere to find the serial: log in at https://iaqualink.net, open the location/site for your pool, then click **Device Status** — the serial is shown there. It also appears on the sticker on the unit and looks like e.g. `LB18475932`.",
         "data": {
           "email": "Email",
           "password": "Password",
