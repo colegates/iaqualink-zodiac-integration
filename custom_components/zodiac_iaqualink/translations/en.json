@@ -1,0 +1,56 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zodiac iAquaLink Heat Pump",
+        "description": "Sign in with your iAquaLink account and enter the heat pump serial number (printed on the unit, e.g. LB18475932).",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "serial": "Heat pump serial number"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid email or password.",
+      "cannot_connect": "Unable to reach the iAquaLink cloud."
+    },
+    "abort": {
+      "already_configured": "This heat pump is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "water_temperature": { "name": "Water temperature" },
+      "air_temperature": { "name": "Air temperature" },
+      "setpoint": { "name": "Setpoint" },
+      "heater_status": {
+        "name": "Heater status",
+        "state": {
+          "off": "Off",
+          "temp_buffer": "Temperature buffer",
+          "heating": "Heating",
+          "unknown": "Unknown"
+        }
+      },
+      "heater_mode": {
+        "name": "Heater mode",
+        "state": {
+          "boost": "Boost",
+          "silent": "Silent",
+          "unknown": "Unknown"
+        }
+      },
+      "reason": { "name": "Reason code" }
+    },
+    "select": {
+      "heater_mode": {
+        "name": "Mode",
+        "state": {
+          "boost": "Boost",
+          "silent": "Silent"
+        }
+      }
+    }
+  }
+}
