@@ -11,6 +11,12 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api import ZodiacApiClient, ZodiacApiError, ZodiacAuthError
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, EQUIPMENT_KEY
 
+# A 429 (rate limit) is a "try again later" signal, not a device-offline
+# signal — reuse the previous shadow rather than blipping every entity to
+# unavailable. After this many consecutive 429s without a successful read
+# we give up and surface UpdateFailed so the user knows something is up.
+_RATE_LIMIT_TOLERANCE = 5
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -84,6 +90,7 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.client = client
         self.serial = serial
+        self._consecutive_rate_limits = 0
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
@@ -92,7 +99,23 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Triggers HA's standard re-auth flow (notification + reconfigure prompt).
             raise ConfigEntryAuthFailed(str(err)) from err
         except ZodiacApiError as err:
-            raise UpdateFailed(str(err)) from err
+            msg = str(err)
+            is_rate_limit = "429" in msg or "Rate limited" in msg
+            if is_rate_limit and self.data is not None:
+                self._consecutive_rate_limits += 1
+                if self._consecutive_rate_limits <= _RATE_LIMIT_TOLERANCE:
+                    _LOGGER.info(
+                        "iAquaLink rate-limited (%s/%s); reusing last known shadow",
+                        self._consecutive_rate_limits,
+                        _RATE_LIMIT_TOLERANCE,
+                    )
+                    return self.data
+                _LOGGER.warning(
+                    "iAquaLink rate-limited %s consecutive polls; surfacing as UpdateFailed",
+                    self._consecutive_rate_limits,
+                )
+            raise UpdateFailed(msg) from err
+        self._consecutive_rate_limits = 0
         return parse_shadow(shadow)
 
     async def _async_write(self, desired: dict[str, Any], description: str) -> None:
