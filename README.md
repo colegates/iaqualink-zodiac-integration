@@ -72,6 +72,53 @@ Once merged into `home-assistant/brands`, the iAquaLink logo will appear on
 the integration tile. Until then HA shows a generic puzzle icon next to
 "Zodiac iAquaLink Heat Pump".
 
+## Logs, errors, and diagnostics
+
+The integration follows Home Assistant's standard error-reporting paths:
+
+- All log lines go to HA's normal log under
+  `custom_components.zodiac_iaqualink.*`. To turn on debug logging add this
+  to `configuration.yaml`:
+  ```yaml
+  logger:
+    default: warning
+    logs:
+      custom_components.zodiac_iaqualink: debug
+  ```
+  (or use *Settings → System → Logs → Debug logging* on the integration's
+  card; `loggers` is registered in `manifest.json` so HA will recognise it).
+- **Authentication failures** trigger HA's standard re-auth notification
+  with a button to re-enter the password — no need to delete and re-add the
+  integration.
+- **Connection / API errors** during polling are reported via
+  `DataUpdateCoordinator.UpdateFailed`, which shows up in the HA UI as
+  "integration not loading" with the error inline.
+- **User-triggered command failures** (changing setpoint, mode, power) are
+  raised as `HomeAssistantError`, which HA renders as a red toast in the
+  frontend.
+- **Diagnostics**: from the integration's *...* menu in
+  *Settings → Devices & Services*, choose *Download diagnostics*. The dump
+  contains the parsed coordinator data with email, password, and serial
+  number redacted — safe to attach to a GitHub issue.
+
+## Releases & updates in HACS
+
+HACS watches the GitHub releases on this repo. Once installed, when a new
+release is published HACS shows an *Update available* badge on the
+integration card and on the HACS dashboard.
+
+For maintainers, the release flow is:
+
+1. Bump `custom_components/zodiac_iaqualink/manifest.json` `version`.
+2. Commit, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+3. The `Release` workflow validates that the tag matches the manifest
+   version, bundles the integration as a zip, and creates the GitHub
+   Release. HACS picks it up on its next refresh.
+
+The `Validate` workflow runs HACS's own action and Home Assistant's
+`hassfest` on every push and PR, so manifest / structural problems are
+caught before they ship.
+
 ## Notes / limitations
 
 - This integration controls **power on/off**, **setpoint**, and **mode**

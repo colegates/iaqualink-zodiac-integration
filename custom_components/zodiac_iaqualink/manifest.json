@@ -1,13 +1,14 @@
 {
   "domain": "zodiac_iaqualink",
   "name": "Zodiac iAquaLink Heat Pump",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "documentation": "https://github.com/colegates/iaqualink-zodiac-integration",
   "issue_tracker": "https://github.com/colegates/iaqualink-zodiac-integration/issues",
   "codeowners": ["@colegates"],
   "config_flow": true,
   "iot_class": "cloud_polling",
   "integration_type": "device",
+  "loggers": ["custom_components.zodiac_iaqualink"],
   "requirements": [],
   "dependencies": []
 }
