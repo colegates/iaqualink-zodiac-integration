@@ -53,6 +53,7 @@ def parse_shadow(shadow: dict[str, Any]) -> dict[str, Any]:
         "air_temp": _parse_number(sns_2.get("value")),
         "status": status,
         "mode": mode,
+        "power_state": hp.get("state"),
         "reason": hp.get("reason"),
         "fan": hp.get("fan"),
         "compressor_load": hp.get("cl"),
@@ -101,5 +102,12 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_set_mode(self, mode_int: int) -> None:
         await self.client.async_update_shadow(
             self.serial, {"equipment": {EQUIPMENT_KEY: {"st": int(mode_int)}}}
+        )
+        await self.async_request_refresh()
+
+    async def async_set_power(self, on: bool) -> None:
+        """Turn the heat pump on/off via equipment.hp_0.state (1/0)."""
+        await self.client.async_update_shadow(
+            self.serial, {"equipment": {EQUIPMENT_KEY: {"state": 1 if on else 0}}}
         )
         await self.async_request_refresh()

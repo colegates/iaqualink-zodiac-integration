@@ -7,8 +7,8 @@ The official Home Assistant `iaqualink` integration and the HACS `exo_pool`
 integration cover other devices on the same cloud but do not surface this
 heat pump's data. This integration adds:
 
-- A **climate** entity (current water temperature, target setpoint, heating
-  status mapped to HVAC action).
+- A **climate** entity (current water temperature, target setpoint, on/off
+  via HVAC mode HEAT/OFF, and heating status mapped to HVAC action).
 - **Sensors**: water temperature, air temperature, setpoint, heater status
   (`off` / `temp_buffer` / `heating`), heater mode (`boost` / `silent`),
   reason code.
@@ -39,9 +39,15 @@ Writes use the standard AWS-IoT-style desired-state shape:
 { "state": { "desired": { "equipment": { "hp_0": { "tsp": 28 } } } } }
 ```
 
-`tsp` is the target setpoint in °C (8–32). `st` is the heater mode (`0` =
-Boost, `1` = Silent). `status` is read-only and reports `0` Off, `1`
-Temperature buffer (at/near target), `2` Actively heating.
+Shadow keys we use under `equipment.hp_0`:
+
+- `state` — power command/report. `1` = on, `0` = off. Writing this is what
+  the iAquaLink app does when you toggle the heater.
+- `tsp` — target setpoint in °C (8–32).
+- `st` — mode. `0` = Boost, `1` = Silent.
+- `status` — operational status (read-only). `0` Off, `1` Temperature buffer
+  (at/near target), `2` Actively heating.
+- `fan` — fan running indicator (read-only).
 
 ## Polling
 
@@ -51,8 +57,7 @@ without good reason.
 
 ## Notes / limitations
 
-- Power on/off and pump-control commands are not implemented yet — the wall
-  HMI / iAquaLink app remain the source of truth for those. This integration
-  controls **setpoint** and **mode** only.
+- This integration controls **power on/off**, **setpoint**, and **mode**
+  (Boost/Silent). Pump-control / scheduling are not exposed.
 - Tested with one Z400iQ (firmware `V71R54` / `V71E5`). Other Zodiac heat
   pumps that report under `equipment.hp_0` should work, but are untested.

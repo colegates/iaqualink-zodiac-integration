@@ -56,11 +56,12 @@ class ZodiacHeatPumpClimate(ZodiacBaseEntity, ClimateEntity):
 
     @property
     def hvac_mode(self) -> HVACMode | None:
-        status = (self.coordinator.data or {}).get("status")
-        # status 0 = off; 1 = at-target buffer; 2 = actively heating
-        if status == 0:
+        # power_state (equipment.hp_0.state) is the authoritative on/off field;
+        # status reflects the operational result (off / buffer / heating).
+        power = (self.coordinator.data or {}).get("power_state")
+        if power == 0:
             return HVACMode.OFF
-        if status in (1, 2):
+        if power == 1:
             return HVACMode.HEAT
         return None
 
@@ -83,6 +84,7 @@ class ZodiacHeatPumpClimate(ZodiacBaseEntity, ClimateEntity):
             "reason_code": data.get("reason"),
             "status_code": data.get("status"),
             "mode_code": data.get("mode"),
+            "power_state": data.get("power_state"),
             "fan": data.get("fan"),
             "compressor_load": data.get("compressor_load"),
             "water_flow": data.get("water_flow"),
@@ -96,7 +98,15 @@ class ZodiacHeatPumpClimate(ZodiacBaseEntity, ClimateEntity):
         await self.coordinator.async_set_setpoint(clamped)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        # The Z400iQ shadow doesn't expose a clean "off" toggle separate from the wall HMI;
-        # writing tsp is the only well-understood control. We surface HEAT/OFF read-only
-        # via status, but reject mode writes for now to avoid sending unsupported commands.
-        raise NotImplementedError("Use the iAquaLink app or the heater's HMI to power on/off")
+        if hvac_mode == HVACMode.OFF:
+            await self.coordinator.async_set_power(False)
+        elif hvac_mode == HVACMode.HEAT:
+            await self.coordinator.async_set_power(True)
+        else:
+            raise ValueError(f"Unsupported HVAC mode: {hvac_mode}")
+
+    async def async_turn_on(self) -> None:
+        await self.coordinator.async_set_power(True)
+
+    async def async_turn_off(self) -> None:
+        await self.coordinator.async_set_power(False)
