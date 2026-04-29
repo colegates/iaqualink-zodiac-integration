@@ -18,6 +18,15 @@ class ZodiacBaseEntity(CoordinatorEntity[ZodiacDataUpdateCoordinator]):
         self._serial = coordinator.serial
 
     @property
+    def available(self) -> bool:
+        # The iAquaLink cloud is rate-limited; treat "we have ever polled
+        # successfully" as available rather than the default
+        # "last poll succeeded". A single 429 / transient error then doesn't
+        # blip every entity to unavailable. Genuine outages eventually
+        # surface as UpdateFailed past the rate-limit tolerance window.
+        return self.coordinator.data is not None
+
+    @property
     def device_info(self) -> DeviceInfo:
         data = self.coordinator.data or {}
         return DeviceInfo(
