@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -91,6 +92,7 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.serial = serial
         self._consecutive_rate_limits = 0
+        self.last_fetched: datetime | None = None
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
@@ -116,6 +118,7 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
             raise UpdateFailed(msg) from err
         self._consecutive_rate_limits = 0
+        self.last_fetched = datetime.now(timezone.utc)
         return parse_shadow(shadow)
 
     async def _async_write(self, desired: dict[str, Any], description: str) -> None:

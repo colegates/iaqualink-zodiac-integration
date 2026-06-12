@@ -13,8 +13,8 @@ LOGIN_URL = "https://prod.zodiac-io.com/users/v1/login"
 SHADOW_URL_TEMPLATE = "https://prod.zodiac-io.com/devices/v1/{serial}/shadow"
 USER_AGENT = "okhttp/3.12.0"
 
-# Polling — keep conservative; the API throttles on excessive requests.
-DEFAULT_SCAN_INTERVAL = timedelta(seconds=120)
+# Polling — the iAquaLink API rate-limits aggressively; 5 minutes avoids 429s.
+DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
 
 # Config entry keys
 CONF_EMAIL = "email"

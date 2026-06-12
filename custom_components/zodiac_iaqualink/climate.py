@@ -80,6 +80,7 @@ class ZodiacHeatPumpClimate(ZodiacBaseEntity, ClimateEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         data = self.coordinator.data or {}
         return {
+            **super().extra_state_attributes,
             "air_temperature": data.get("air_temp"),
             "reason_code": data.get("reason"),
             "status_code": data.get("status"),
