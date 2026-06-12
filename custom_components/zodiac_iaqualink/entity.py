@@ -1,6 +1,8 @@
 """Base entity for the Zodiac iAquaLink integration."""
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -16,6 +18,11 @@ class ZodiacBaseEntity(CoordinatorEntity[ZodiacDataUpdateCoordinator]):
     def __init__(self, coordinator: ZodiacDataUpdateCoordinator) -> None:
         super().__init__(coordinator)
         self._serial = coordinator.serial
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        fetched = self.coordinator.last_fetched
+        return {"last_fetched": fetched.isoformat() if fetched else None}
 
     @property
     def available(self) -> bool:
