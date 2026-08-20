@@ -13,13 +13,19 @@ LOGIN_URL = "https://prod.zodiac-io.com/users/v1/login"
 SHADOW_URL_TEMPLATE = "https://prod.zodiac-io.com/devices/v1/{serial}/shadow"
 USER_AGENT = "okhttp/3.12.0"
 
-# Polling — the iAquaLink API rate-limits aggressively; 5 minutes avoids 429s.
-DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
+# Polling — the iAquaLink API rate-limits aggressively even at 5 minutes in
+# real-world use, so the default leans conservative. Configurable per entry
+# via the options flow (see config_flow.py).
+DEFAULT_SCAN_INTERVAL_MINUTES = 10
+DEFAULT_SCAN_INTERVAL = timedelta(minutes=DEFAULT_SCAN_INTERVAL_MINUTES)
+MIN_SCAN_INTERVAL_MINUTES = 1
+MAX_SCAN_INTERVAL_MINUTES = 60
 
 # Config entry keys
 CONF_EMAIL = "email"
 CONF_PASSWORD = "password"
 CONF_SERIAL = "serial"
+CONF_SCAN_INTERVAL = "scan_interval"
 
 # Heat-pump shadow keys
 EQUIPMENT_KEY = "hp_0"
