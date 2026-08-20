@@ -27,6 +27,17 @@
       "reauth_successful": "Re-authentication successful."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zodiac iAquaLink polling interval",
+        "description": "The iAquaLink cloud API rate-limits aggressively. Polling too often causes HTTP 429 errors and stale/unavailable data.\n\n- **Minimum recommended: 5 minutes.** 10-15 minutes is a safer default — 429s have been observed in real-world use even at 5 minutes.\n- If you have **multiple** Zodiac/iAquaLink devices on the same account, the rate limit appears to be **account-wide**. Space out or raise each device's interval rather than running several at 5-10 minutes each.\n- A stray 429 is not harmful: the integration reuses the last known reading for a few cycles before marking entities unavailable. A low interval with *sustained* 429s, however, means the data shown is effectively stale.",
+        "data": {
+          "scan_interval": "Polling interval (minutes)"
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "water_temperature": { "name": "Water temperature" },

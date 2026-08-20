@@ -54,9 +54,21 @@ Shadow keys we use under `equipment.hp_0`:
 
 ## Polling
 
-The integration polls every 120 seconds. The cloud rate-limits aggressively
-(returning HTTP 429 if you go too fast); please don't shorten the interval
-without good reason.
+The polling interval is configurable per device from *Settings → Devices &
+Services → Zodiac iAquaLink Heat Pump → Configure*. It defaults to **10
+minutes**.
+
+The cloud rate-limits aggressively — HTTP 429s have been observed in
+real-world use even at 5-minute polling with a single device configured.
+Guidance:
+
+- Don't go below 5 minutes; 10-15 minutes is safer.
+- If you have multiple Zodiac/iAquaLink devices on the same account, the
+  rate limit appears to be account-wide, so stagger or raise each device's
+  interval rather than polling several devices at 5-10 minutes each.
+- Occasional 429s aren't harmful — the coordinator reuses the last known
+  reading for a few cycles before marking entities unavailable — but a low
+  interval with sustained 429s means the data shown is effectively stale.
 
 ## Branding (iAquaLink logo on the integration tile)
 

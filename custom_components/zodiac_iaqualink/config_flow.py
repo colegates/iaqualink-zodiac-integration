@@ -7,11 +7,26 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import ZodiacApiClient, ZodiacApiError, ZodiacAuthError
-from .const import CONF_EMAIL, CONF_PASSWORD, CONF_SERIAL, DOMAIN
+from .const import (
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
+    CONF_SERIAL,
+    DEFAULT_SCAN_INTERVAL_MINUTES,
+    DOMAIN,
+    MAX_SCAN_INTERVAL_MINUTES,
+    MIN_SCAN_INTERVAL_MINUTES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +60,11 @@ class ZodiacConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         self._reauth_entry: ConfigEntry | None = None
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> ZodiacOptionsFlow:
+        return ZodiacOptionsFlow()
 
     async def _async_validate(
         self, email: str, password: str, serial: str
@@ -130,3 +150,28 @@ class ZodiacConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders={"email": existing[CONF_EMAIL]},
             errors=errors,
         )
+
+
+class ZodiacOptionsFlow(OptionsFlow):
+    """Handle options (currently: scan interval) for an existing entry."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        current = self.config_entry.options.get(
+            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL_MINUTES
+        )
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_SCAN_INTERVAL, default=current): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(
+                        min=MIN_SCAN_INTERVAL_MINUTES, max=MAX_SCAN_INTERVAL_MINUTES
+                    ),
+                ),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
