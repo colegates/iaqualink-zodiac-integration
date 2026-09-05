@@ -34,6 +34,16 @@ def _parse_number(value: Any) -> float | int | None:
         return None
 
 
+def _parse_tenth(value: Any) -> float | None:
+    """Parse a value the API returns as tenths of a degree Celsius.
+
+    The iAquaLink cloud reports temperatures as integers scaled by 10
+    (e.g. 287 means 28.7 °C). Dividing by 10 converts to real °C.
+    """
+    raw = _parse_number(value)
+    return raw / 10 if raw is not None else None
+
+
 def parse_shadow(shadow: dict[str, Any]) -> dict[str, Any]:
     """Flatten the relevant Z400iQ fields out of the raw shadow response."""
     reported = (shadow or {}).get("state", {}).get("reported", {}) or {}
@@ -56,9 +66,9 @@ def parse_shadow(shadow: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "device_id": shadow.get("deviceId"),
-        "setpoint": _parse_number(hp.get("tsp")),
-        "water_temp": _parse_number(sns_1.get("value")),
-        "air_temp": _parse_number(sns_2.get("value")),
+        "setpoint": _parse_tenth(hp.get("tsp")),
+        "water_temp": _parse_tenth(sns_1.get("value")),
+        "air_temp": _parse_tenth(sns_2.get("value")),
         "status": status,
         "mode": mode,
         "power_state": hp.get("state"),
@@ -136,7 +146,8 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.async_request_refresh()
 
     async def async_set_setpoint(self, setpoint: int) -> None:
-        await self._async_write({"tsp": int(setpoint)}, f"set setpoint to {setpoint}°C")
+        # The API expects temperatures as tenths of a degree (e.g. 28 °C → 280).
+        await self._async_write({"tsp": int(setpoint * 10)}, f"set setpoint to {setpoint}°C")
 
     async def async_set_mode(self, mode_int: int) -> None:
         await self._async_write({"st": int(mode_int)}, f"set mode to {mode_int}")
