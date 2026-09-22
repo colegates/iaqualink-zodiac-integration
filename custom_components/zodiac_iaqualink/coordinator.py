@@ -10,7 +10,13 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import ZodiacApiClient, ZodiacApiError, ZodiacAuthError
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, EQUIPMENT_KEY
+from .const import (
+    DEFAULT_SCAN_INTERVAL,
+    DEVICE_TYPE_KEY,
+    DOMAIN,
+    EQUIPMENT_KEY,
+    TENTHS_SCALED_DEVICE_TYPES,
+)
 
 # A 429 (rate limit) is a "try again later" signal, not a device-offline
 # signal — reuse the previous shadow rather than blipping every entity to
@@ -34,11 +40,20 @@ def _parse_number(value: Any) -> float | int | None:
         return None
 
 
+def _parse_tenth(value: Any) -> float | None:
+    """Parse a value reported as tenths of a degree Celsius (e.g. 215 -> 21.5)."""
+    raw = _parse_number(value)
+    return raw / 10 if raw is not None else None
+
+
 def parse_shadow(shadow: dict[str, Any]) -> dict[str, Any]:
-    """Flatten the relevant Z400iQ fields out of the raw shadow response."""
+    """Flatten the relevant heat-pump fields out of the raw shadow response."""
     reported = (shadow or {}).get("state", {}).get("reported", {}) or {}
     equipment = reported.get("equipment", {}) or {}
     hp = equipment.get(EQUIPMENT_KEY, {}) or {}
+
+    device_type = reported.get(DEVICE_TYPE_KEY)
+    parse_temp = _parse_tenth if device_type in TENTHS_SCALED_DEVICE_TYPES else _parse_number
 
     sns_1 = hp.get("sns_1") or {}
     sns_2 = hp.get("sns_2") or {}
@@ -56,9 +71,10 @@ def parse_shadow(shadow: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "device_id": shadow.get("deviceId"),
-        "setpoint": _parse_number(hp.get("tsp")),
-        "water_temp": _parse_number(sns_1.get("value")),
-        "air_temp": _parse_number(sns_2.get("value")),
+        "device_type": device_type,
+        "setpoint": parse_temp(hp.get("tsp")),
+        "water_temp": parse_temp(sns_1.get("value")),
+        "air_temp": parse_temp(sns_2.get("value")),
         "status": status,
         "mode": mode,
         "power_state": hp.get("state"),
@@ -136,7 +152,9 @@ class ZodiacDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.async_request_refresh()
 
     async def async_set_setpoint(self, setpoint: int) -> None:
-        await self._async_write({"tsp": int(setpoint)}, f"set setpoint to {setpoint}°C")
+        uses_tenths_scaling = (self.data or {}).get("device_type") in TENTHS_SCALED_DEVICE_TYPES
+        raw_value = setpoint * 10 if uses_tenths_scaling else setpoint
+        await self._async_write({"tsp": int(raw_value)}, f"set setpoint to {setpoint}°C")
 
     async def async_set_mode(self, mode_int: int) -> None:
         await self._async_write({"st": int(mode_int)}, f"set mode to {mode_int}")

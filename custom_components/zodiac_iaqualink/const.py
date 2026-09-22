@@ -29,6 +29,17 @@ CONF_SCAN_INTERVAL = "scan_interval"
 
 # Heat-pump shadow keys
 EQUIPMENT_KEY = "hp_0"
+DEVICE_TYPE_KEY = "dt"
+
+# Some Zodiac models report setpoint/water/air temperatures as integers
+# scaled by 10 (e.g. shadow `tsp: 215` means 21.5 °C) instead of whole
+# degrees. Confirmed via a user-submitted diagnostics dump: Z550iQ reports
+# `state.reported.dt == "zs500"` and uses this scaling; the Z400iQ this
+# integration targets does not (see api.py's `tsp: 28` example and the
+# MIN_TEMP_C/MAX_TEMP_C bounds below). Scaling is gated on this field rather
+# than applied unconditionally so unknown/untested device types default to
+# the existing (unscaled) behavior.
+TENTHS_SCALED_DEVICE_TYPES = {"zs500"}
 
 # Heater status (from shadow `equipment.hp_0.status`)
 HEATER_STATUS_MAP = {
