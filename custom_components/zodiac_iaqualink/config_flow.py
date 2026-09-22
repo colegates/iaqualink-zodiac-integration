@@ -69,7 +69,7 @@ class ZodiacConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _async_validate(
         self, email: str, password: str, serial: str
     ) -> tuple[str | None, dict[str, Any]]:
-        """Return (error_key, shadow) where error_key is one of {None, 'invalid_auth', 'cannot_connect'}."""
+        """Return (error_key, shadow) where error_key is one of {None, 'invalid_auth', 'cannot_connect', 'unknown'}."""
         session = async_get_clientsession(self.hass)
         client = ZodiacApiClient(session, email, password)
         try:
@@ -80,6 +80,13 @@ class ZodiacConfigFlow(ConfigFlow, domain=DOMAIN):
         except ZodiacApiError as err:
             _LOGGER.warning("Cannot connect to iAquaLink API during config: %s", err)
             return "cannot_connect", {}
+        except Exception:
+            # Anything else (an unexpected response shape, etc.) must not
+            # crash the flow step — an unhandled exception here can leave
+            # the flow's unique-id claim stuck, causing "already in
+            # progress" on a retry (see issue #10).
+            _LOGGER.exception("Unexpected error validating iAquaLink credentials")
+            return "unknown", {}
         return None, shadow
 
     async def async_step_user(

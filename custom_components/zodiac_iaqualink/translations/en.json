@@ -20,7 +20,8 @@
     },
     "error": {
       "invalid_auth": "Invalid email or password.",
-      "cannot_connect": "Unable to reach the iAquaLink cloud."
+      "cannot_connect": "Unable to reach the iAquaLink cloud.",
+      "unknown": "Unexpected error. Check the Home Assistant logs and try again."
     },
     "abort": {
       "already_configured": "This heat pump is already configured.",

@@ -65,7 +65,9 @@ class ZodiacApiClient:
                 if resp.status >= 400:
                     _LOGGER.error("Login failed (%s): %s", resp.status, body)
                     raise ZodiacApiError(f"Login failed ({resp.status}): {body}")
-        except aiohttp.ClientError as err:
+        except (aiohttp.ClientError, ValueError) as err:
+            # ValueError covers a non-JSON response body (e.g. an HTML error
+            # page from the cloud during an outage) reaching json.loads().
             _LOGGER.error("Login transport error: %s", err)
             raise ZodiacApiError(f"Login transport error: {err}") from err
 
@@ -136,7 +138,7 @@ class ZodiacApiClient:
                     _LOGGER.error("Shadow GET failed (%s): %s", resp.status, text)
                     raise ZodiacApiError(f"Shadow GET failed ({resp.status}): {text}")
                 return await resp.json(content_type=None)
-        except aiohttp.ClientError as err:
+        except (aiohttp.ClientError, ValueError) as err:
             _LOGGER.warning("Shadow GET transport error: %s", err)
             raise ZodiacApiError(f"Shadow GET transport error: {err}") from err
 
@@ -185,6 +187,6 @@ class ZodiacApiClient:
                     _LOGGER.error("Shadow POST failed (%s): %s", resp.status, payload)
                     raise ZodiacApiError(f"Shadow POST failed ({resp.status}): {payload}")
                 return payload
-        except aiohttp.ClientError as err:
+        except (aiohttp.ClientError, ValueError) as err:
             _LOGGER.warning("Shadow POST transport error: %s", err)
             raise ZodiacApiError(f"Shadow POST transport error: {err}") from err
